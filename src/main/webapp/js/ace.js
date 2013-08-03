@@ -6,10 +6,6 @@
 
 
 var logged = false;
-var socket = $.atmosphere;
-var subSocket;
-var transport = 'websocket';
-var fallback_transport = 'long-polling';
 
 var editor = ace.edit("editor");
 
@@ -19,42 +15,8 @@ editor.getSession().on('change', sendChangedEvent);
 
 // here is what happens when we edit something in the editor and send the change to the server
 function sendChangedEvent(e) {
-    subSocket.push(JSON.stringify(e.data));
+  console.log("getting ");
+  console.log(e.data);
+  theUserTypedThis(e); //e is not just the text entered on the UI, it is a complex javascript object with lots of details about where the one character was added/remove, etc
 }
 
-var request = {
-    url: "/editor/editor",
-    contentType: "application/json",
-    logLevel: 'debug',
-    transport: transport,
-    fallbackTransport: fallback_transport
-};
-
-request.onOpen = function (response) {
-    socket.info("opening")
-    transport = response.transport;
-};
-
-request.onReconnect = function () {
-    socket.info("Reconnecting")
-};
-
-// here is what happens when we receive data from the server
-// do something like inserting the received message into the editor
-request.onMessage = function (rs) {
-    var change = JSON.parse(rs.responseBody);
-
-    editor.moveCursorTo(change.range.start.row, change.range.start.column);
-    editor.insert(change.text);
-    editor.moveCursorTo(change.range.end.row, change.range.end.column + 1);
-};
-
-request.onClose = function () {
-    console.log("close");
-};
-
-request.onError = function () {
-    console.log("error");
-};
-
-//subSocket = socket.subscribe(request);
